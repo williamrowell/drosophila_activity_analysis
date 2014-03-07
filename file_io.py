@@ -5,11 +5,15 @@ Created on Mar 6, 2014
 '''
 
 import ConfigParser
+import math
 import os.path
 import re
+
 import datetime as dt
 import numpy as np
 import pandas as pd
+
+from . import analyze
 
 
 def read_config(configfile):
@@ -194,6 +198,29 @@ def read_DAM_data(monitor_number, MAX_MONITOR):
     df = df.drop('time', axis=1)
 
     return df
+
+def write_data(protocol_dict, DEnM_df, data_dict, data_type, outname):
+    '''
+    Write activity or sleep data to disk.
+    '''
+    (__, start_date, end_date) = \
+        analyze.calculate_dates(protocol_dict, DEnM_df)
+
+    # create string used to control binning size
+    resample_freq = str(protocol_dict['bin']) + 'Min'
+
+    # create the time series to be used for the dataframes
+    t_index = DEnM_df.ix[start_date:end_date].resample(resample_freq, how='sum').index
+
+    output_df = pd.DataFrame(index=t_index)
+
+    for genotype in data_dict:
+        df = data_dict[genotype][start_date:end_date].resample(resample_freq,
+                                                               how='sum')
+        output_df[genotype + '_mean'] = df.mean(axis=1)
+        output_df[genotype + '_sem'] = df.std(axis=1) / math.sqrt(df.shape[1])
+        output_df[genotype + '_N'] = df.shape[1]
+    output_df.to_excel(outname)
 
 if __name__ == '__main__':
     pass

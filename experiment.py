@@ -5,7 +5,6 @@ Created on Mar 6, 2014
 '''
 
 import os, pickle
-
 from . import file_io, analyze, plot
 
 
@@ -138,4 +137,17 @@ class experiment:
     def save(self):
         '''Pickle experiment to reuse later.'''
         pickle.dump(self, open(self.key[-4] + '.pickle', 'wb'))
+
+    def write_data(self):
+        '''Write activity and sleep data as excel.'''
+        file_io.write_data(self.protocol_dict,
+                           self.DEnM_df,
+                           self.activity_dict,
+                           'activity',
+                           self.key + '_activity.xls')
+        file_io.write_data(self.protocol_dict,
+                           self.DEnM_df,
+                           self.sleep_dict,
+                           'sleep',
+                           self.key + '_sleep.xls')
 

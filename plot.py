@@ -294,12 +294,12 @@ def multiple_data(protocol_dict, DEnM_df, data_dict, genotype_list, data_type):
 
         for gen_index, genotype in enumerate(genotype_list):
             legend_label = ' '.join([genotype, 'N=' + str(data_dict[genotype].shape[1])])
-            ax.plot_date(mean_df.index,
-                         mean_df[genotype],
+            ax.plot_date(mean_df[start:end].index,
+                         mean_df[start:end][genotype],
                          '-',
                          label=legend_label,
                          color=color_cycle[gen_index % len(color_cycle)])
-            for i in mean_df.index:
+            for i in mean_df[start:end].index:
                 ax.errorbar(x=i,
                             y=mean_df[genotype][i],
                             yerr=sem_df[genotype][i],
