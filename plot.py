@@ -11,6 +11,7 @@ import datetime as dt
 import matplotlib.dates as mpld
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 
 def metadata(protocol_dict, DEnM_df):
@@ -123,7 +124,7 @@ def data(protocol_dict, DEnM_df, data_dict, genotype, data_type):
         mean = data_df.mean(axis=1).ix[start:end]
         sem = data_df.std(axis=1).ix[start:end] / math.sqrt(data_df.shape[1])
 
-        ax.plot_date(mean.index, mean, '.-', color='k')
+        ax.plot_date(mean.index, mean, '-', color='k')
         ax.set_title(' '.join([genotype, gender, data_type, 'Day', str(day),
                                '(N=' + str(data_df.shape[1]) + ')']))
 
@@ -179,7 +180,6 @@ def data_vs_control(protocol_dict, DEnM_df, data_dict, genotype, data_type):
 
 
     savename = '_'.join([genotype,
-                         'vs',
                          control_genotype,
                          protocol_dict['gender'],
                          data_type + '.pdf'])
@@ -215,7 +215,7 @@ def data_vs_control(protocol_dict, DEnM_df, data_dict, genotype, data_type):
         for i in cont_mean.index:
             ax.errorbar(x=i, y=cont_mean[i], yerr=cont_sem[i], color='r')
 
-        ax.legend(loc=2)
+        ax.legend(prop={'size':'x-small'})
 
         ax.set_title(' '.join([genotype, gender, data_type, 'Day', str(day),
                                '(N=' + str(data_df.shape[1]) + ')']))
@@ -244,13 +244,22 @@ def multiple_data(protocol_dict, DEnM_df, data_dict, genotype_list, data_type):
     (dates, start_date, end_date) = \
         analyze.calculate_dates(protocol_dict, DEnM_df)
 
+    # create string used to control binning size
     resample_freq = str(protocol_dict['bin']) + 'Min'
 
-    control_genotype = protocol_dict['control_genotype']
+    # create the time series to be used for the dataframes
+    t_index = DEnM_df.ix[start_date:end_date].resample(resample_freq, how='sum').index
 
-    data_df = data_dict[genotype].ix[start_date:end_date].resample(resample_freq, how='sum')
-    cont_df = data_dict[control_genotype].ix[start_date:end_date].resample(resample_freq, how='sum')
+    # create temporary dataframes to hold the mean and sem
+    mean_df = pd.DataFrame(index=t_index)
+    sem_df = pd.DataFrame(index=t_index)
+    for genotype in genotype_list:
+        df = data_dict[genotype][start_date:end_date].resample(resample_freq,
+                                                               how='sum')
+        mean_df[genotype] = df.mean(axis=1)
+        sem_df[genotype] = df.std(axis=1) / math.sqrt(df.shape[1])
 
+    # plot decorations/parameters based on what type of plot
     if data_type == 'activity':
         ylabel = 'beam crossings per ' + str(protocol_dict['bin']) + ' minutes'
         ylim = (0, 100)
@@ -259,15 +268,15 @@ def multiple_data(protocol_dict, DEnM_df, data_dict, genotype_list, data_type):
         ylim = (0, 45)
     light_bar = 0.8 * ylim[1]
 
+    # other plot parameters
     xlabel = 'time (h)'
     if protocol_dict['gender'] == 'f': gender = ur'$\u2640$'
     elif protocol_dict['gender'] == 'm': gender = ur'$\u2642$'
     else: gender = ur''
 
+    color_cycle = ['r', 'g', 'b', 'c', 'm', 'k']
 
-    savename = '_'.join([genotype,
-                         'vs',
-                         control_genotype,
+    savename = '_'.join(['_'.join([x for x in genotype_list]),
                          protocol_dict['gender'],
                          data_type + '.pdf'])
 
@@ -282,30 +291,23 @@ def multiple_data(protocol_dict, DEnM_df, data_dict, genotype_list, data_type):
 
         __, ax = plt.subplots()
 
-        data_mean = data_df.mean(axis=1).ix[start:end]
-        data_sem = data_df.std(axis=1).ix[start:end] / math.sqrt(data_df.shape[1])
-        cont_mean = cont_df.mean(axis=1).ix[start:end]
-        cont_sem = cont_df.std(axis=1).ix[start:end] / math.sqrt(data_df.shape[1])
 
-        ax.plot_date(data_mean.index,
-                     data_mean, '-', color='b',
-                     label=genotype)
-        # plot SEM
-        for i in data_mean.index:
-            ax.errorbar(x=i, y=data_mean[i], yerr=data_sem[i], color='b')
+        for gen_index, genotype in enumerate(genotype_list):
+            legend_label = ' '.join([genotype, 'N=' + str(data_dict[genotype].shape[1])])
+            ax.plot_date(mean_df.index,
+                         mean_df[genotype],
+                         '-',
+                         label=legend_label,
+                         color=color_cycle[gen_index % len(color_cycle)])
+            for i in mean_df.index:
+                ax.errorbar(x=i,
+                            y=mean_df[genotype][i],
+                            yerr=sem_df[genotype][i],
+                            color=color_cycle[gen_index % len(color_cycle)])
 
-        ax.plot_date(cont_mean.index,
-                     cont_mean,
-                     '--', color='r',
-                     label=control_genotype)
-        # plot SEM
-        for i in cont_mean.index:
-            ax.errorbar(x=i, y=cont_mean[i], yerr=cont_sem[i], color='r')
+        ax.legend(prop={'size':'x-small'})
 
-        ax.legend(loc=2)
-
-        ax.set_title(' '.join([genotype, gender, data_type, 'Day', str(day),
-                               '(N=' + str(data_df.shape[1]) + ')']))
+        ax.set_title(' '.join([genotype, gender, data_type, 'Day', str(day)]))
         ax.xaxis.set_major_locator(mpld.HourLocator(interval=1))
         ax.xaxis.set_major_formatter(mpld.DateFormatter('%H'))
         ax.xaxis.grid(True, which='major')

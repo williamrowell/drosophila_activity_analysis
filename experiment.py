@@ -4,14 +4,38 @@ Created on Mar 6, 2014
 @author: William Rowell
 '''
 
-import os
+import os, pickle
 
 from . import file_io, analyze, plot
 
 
 class experiment:
     '''
-    classdocs
+    Usage: exp = experiment([config,] key)
+    
+    A trikinetics experiment is constructed using a config file (containing 
+    relatively constant parameters) and a key file (containing both parameters 
+    relevant to the specific experiment as well as the genotypes and 
+    monitor/channel positions of flies).  If only one argument is passed, the
+    default configuration is used.
+    
+    When called, these files are parsed and the raw experimental data is 
+    processed/aggregated into two dictionaries:
+    activity_dict - a table containing the raw beam crossing events, per minute
+    sleep_dict    - a table where minutes of sleep are marked with a '1'
+                    (sleep is defined as 5+ consecutive minutes of 0 activity)
+                    
+    After construction, you can produce various plots using the following
+    methods:
+    plot_metadata()
+    plot_activity(<genotype>)
+    plot_sleep(<genotype>)
+    plot_activity_vs_control(<genotype>)
+    plot_sleep_vs_control(<genotype>)
+    plot_all()
+    
+    You can also save the experiment (via pickle) for later manipulation using 
+    the save() method.    
     '''
 
 
@@ -110,4 +134,8 @@ class experiment:
         for genotype in self.genotype_dict:
             self.plot_activity(genotype)
             self.plot_sleep(genotype)
+
+    def save(self):
+        '''Pickle experiment to reuse later.'''
+        pickle.dump(self, open(self.key[-4] + '.pickle', 'wb'))
 
