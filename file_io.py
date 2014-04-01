@@ -107,7 +107,7 @@ def read_key(keyfile):
         # Split and store as list of 3-tuples
         # Format (Mon, ChanLo, ChanHi)
         positions = [pos_regex.match(x.strip()).groups()
-                     for x in pos_string.split(',')]
+                     for x in pos_string.split(',')]  # pylint: disable=E1103
         if genotype not in genotype_dict: genotype_dict[genotype] = positions
         else: genotype_dict[genotype].extend(positions)
 
@@ -142,8 +142,9 @@ def read_DEnM_data(monitor_number, ENV_MONITORS):
     df = pd.read_csv(datafile, sep='\t', header=None, names=hr, usecols=columns)
 
     # create datetime vector from 'date' and 'time' vectors
-    df.index = [dt.datetime.strptime(df.date[i] + ' ' + df.time[i], '%d %b %y %H:%M:%S')
-                for i in df.index]
+    df.index = [dt.datetime.strptime(df.date[i] + ' ' + df.time[i],
+                                     '%d %b %y %H:%M:%S')
+                for i in df.index]  # pylint: disable=E1103
     # drop 'date' and 'time' vectors
     df = df.drop('date', axis=1)
     df = df.drop('time', axis=1)
@@ -192,7 +193,7 @@ def read_DAM_data(monitor_number, MAX_MONITOR):
 
     # create datetime vector from 'date' and 'time' vectors
     df.index = [dt.datetime.strptime(df.date[i] + ' ' + df.time[i], '%d %b %y %H:%M:%S')
-                for i in df.index]
+                for i in df.index]  # pylint: disable=E1103
     # drop 'date' and 'time' vectors
     df = df.drop('date', axis=1)
     df = df.drop('time', axis=1)
@@ -213,6 +214,8 @@ def write_data(protocol_dict, DEnM_df, data_dict, data_type, outname):
     t_index = DEnM_df.ix[start_date:end_date].resample(resample_freq, how='sum').index
 
     output_df = pd.DataFrame(index=t_index)
+    output_df['date'] = [i.date() for i in output_df.index]
+    output_df['time'] = [i.time() for i in output_df.index]
 
     for genotype in data_dict:
         df = data_dict[genotype][start_date:end_date].resample(resample_freq,

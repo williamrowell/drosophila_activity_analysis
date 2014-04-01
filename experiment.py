@@ -136,7 +136,7 @@ class experiment:
 
     def save(self):
         '''Pickle experiment to reuse later.'''
-        pickle.dump(self, open(self.key[-4] + '.pickle', 'wb'))
+        pickle.dump(self, open(self.key[:-4] + '.pickle', 'wb'))
 
     def write_data(self):
         '''Write activity and sleep data as excel.'''
@@ -144,10 +144,10 @@ class experiment:
                            self.DEnM_df,
                            self.activity_dict,
                            'activity',
-                           self.key + '_activity.xls')
+                           self.key[:-4] + '_activity.xls')
         file_io.write_data(self.protocol_dict,
                            self.DEnM_df,
                            self.sleep_dict,
                            'sleep',
-                           self.key + '_sleep.xls')
+                           self.key[:-4] + '_sleep.xls')
 
