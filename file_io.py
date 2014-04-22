@@ -18,7 +18,7 @@ from . import analyze
 
 def read_config(configfile):
     '''
-    Load program configuration information from a config-style file 
+    Load program configuration information from a config-style file
     using ConfigParser.  Filename as input.
     '''
 
@@ -214,8 +214,8 @@ def write_data(protocol_dict, DEnM_df, data_dict, data_type, outname):
     t_index = DEnM_df.ix[start_date:end_date].resample(resample_freq, how='sum').index
 
     output_df = pd.DataFrame(index=t_index)
-    output_df['date'] = [i.date() for i in output_df.index]
-    output_df['time'] = [i.time() for i in output_df.index]
+    output_df['date'] = [i.strftime("%Y-%m-%d") for i in output_df.index]
+    output_df['time'] = [i.strftime("%H:%M:%S") for i in output_df.index]
 
     for genotype in data_dict:
         df = data_dict[genotype][start_date:end_date].resample(resample_freq,
