@@ -1,8 +1,8 @@
-'''
+"""
 Created on Mar 6, 2014
 
 @author: William Rowell
-'''
+"""
 
 import ConfigParser
 import math
@@ -13,14 +13,14 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 
-from . import analyze
+import analyze
 
 
 def read_config(configfile):
-    '''
+    """
     Load program configuration information from a config-style file
     using ConfigParser.  Filename as input.
-    '''
+    """
 
     # does the key exist?
     assert os.path.isfile(configfile), '%s does not exist.' % configfile
@@ -48,15 +48,14 @@ def read_config(configfile):
     # unpack environmental monitors into list of ints
     if type(config_dict['env_monitors']) is str:
         config_dict['env_monitors'] = [int(x.strip()) for x in config_dict['env_monitors'].split(',')]
-
     return config_dict
 
 
 def read_key(keyfile):
-    '''
+    """
     Load protocol and genotype information from a config-style file
     using ConfigParser.  Filename as input.
-    '''
+    """
 
     # does the key exist?
     assert os.path.isfile(keyfile), '%s does not exist.' % keyfile
@@ -90,6 +89,9 @@ def read_key(keyfile):
     protocol_dict['lights_on'] = dt.time(protocol_dict['lights_on'], 0, 0)
     protocol_dict['lights_off'] = dt.time(protocol_dict['lights_off'], 0, 0)
 
+    # split the controls into a list
+    protocol_dict['control_genotype'] = [x.strip() for x in protocol_dict['control_genotype'].split(',')]
+
     # check other protocol values
     assert (protocol_dict['DD'] >= 0), \
             'DD must be a positive integer.'
@@ -115,11 +117,11 @@ def read_key(keyfile):
 
 
 def read_DEnM_data(monitor_number, ENV_MONITORS):
-    '''
+    """
     Read the Trikinetics Drosophila Environmental Monitor text file for
     'monitor_number' and return a datetime indexed df with status, Lavg,
     Tavg, Havg, and light boolean.
-    '''
+    """
 
     # test if this is an environmental monitor
     assert (int(monitor_number) in ENV_MONITORS), \
@@ -158,16 +160,15 @@ def read_DEnM_data(monitor_number, ENV_MONITORS):
 
     # correct temperature
     df.Tavg = df.Tavg.apply(lambda x: x / 10.0)
-
     return df
 
 
 def read_DAM_data(monitor_number, MAX_MONITOR):
-    '''
+    """
     Read the Trikinetics Drosophila Activity Monitor text file for
     'monitor_number' and return a datetime indexed df with status,
     Lstatus, and 32 activity channels (named M#C#).
-    '''
+    """
 
     # test if this is an activity monitor
     assert (1 <= int(monitor_number) <= MAX_MONITOR), \
@@ -197,11 +198,11 @@ def read_DAM_data(monitor_number, MAX_MONITOR):
     # drop 'date' and 'time' vectors
     df = df.drop('date', axis=1)
     df = df.drop('time', axis=1)
-
     return df
 
-def write_data(protocol_dict, DEnM_df, data_dict, data_type, outname):
-    '''
+
+def write_data(protocol_dict, DEnM_df, data_dict, outname):
+    """
     Write activity or sleep data to disk.
     '''
     (__, start_date, end_date) = \

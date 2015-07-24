@@ -1,8 +1,8 @@
-'''
+"""
 Created on Mar 6, 2014
 
 @author: William Rowell
-'''
+"""
 
 from matplotlib.backends.backend_pdf import PdfPages
 import math
@@ -14,32 +14,36 @@ import numpy as np
 import pandas as pd
 
 
+COLOR_CYCLE = ['k', 'r', 'b', 'g', 'm', 'c']
+
+
 def metadata(protocol_dict, DEnM_df):
-    '''
+    """
     Plot Lavg, Tavg, and Havg daily.
-    '''
     (dates, start_date, end_date) = \
         analyze.calculate_dates(protocol_dict, DEnM_df)
+    """
 
+    # create name for pdf and open multi-page pdf object
     savename = '_'.join(['DEnM', str(protocol_dict['DEnM']) + '.pdf'])
-
     pdf = PdfPages(savename)
 
     for day in range(1, len(dates)):
         start = start_date + dt.timedelta(days=(day - 1))
         end = start_date + dt.timedelta(day)
 
-        if end > end_date: continue  # exit if on the partial last day
+        if end > end_date:
+            continue  # exit if on the partial last day
 
         fig, ax = plt.subplots(3, sharex=True)
 
+        # plot the average light intensity, temperature, and relative humidity
         L = DEnM_df['Lavg'].ix[start:end]
         T = DEnM_df['Tavg'].ix[start:end]
         H = DEnM_df['Havg'].ix[start:end]
-
         ax[0].plot_date(L.index, L, '-', color='k')
-        ax[1].plot_date(L.index, T, '-', color='k')
-        ax[2].plot_date(L.index, H, '-', color='k')
+        ax[1].plot_date(L.index, T, '-', color='r')
+        ax[2].plot_date(L.index, H, '-', color='b')
 
         # set title
         ax[0].set_title(' '.join(['DEnM',
@@ -74,175 +78,18 @@ def metadata(protocol_dict, DEnM_df):
         plt.setp([a.get_xticklabels() for a in fig.axes[:-1]], visible=False)
         fig.subplots_adjust(hspace=0)
 
+        # save plot to pdf and close figure
         pdf.savefig()
         plt.close()
-
     pdf.close()
 
 
-def data(protocol_dict, DEnM_df, data_dict, genotype, data_type):
-    '''
-    Plot given sleep or activity data daily.
-    '''
-
-    (dates, start_date, end_date) = \
-        analyze.calculate_dates(protocol_dict, DEnM_df)
-
-    resample_freq = str(protocol_dict['bin']) + 'Min'
-
-    data_df = data_dict[genotype].ix[start_date:end_date].resample(resample_freq, how='sum')
-
-    if data_type == 'activity':
-        ylabel = 'beam crossings per ' + str(protocol_dict['bin']) + ' minutes'
-        ylim = (0, 100)
-    if data_type == 'sleep':
-        ylabel = 'minutes sleep per ' + str(protocol_dict['bin']) + ' minutes'
-        ylim = (0, 45)
-    light_bar = 0.95 * ylim[1]
-
-    xlabel = 'time (h)'
-    if protocol_dict['gender'] == 'f': gender = ur'$\u2640$'
-    elif protocol_dict['gender'] == 'm': gender = ur'$\u2642$'
-    else: gender = ur''
-
-
-    savename = '_'.join([genotype,
-                         protocol_dict['gender'],
-                         data_type + '.pdf'])
-
-    pdf = PdfPages(savename)
-
-    for day in range(1, len(dates)):
-
-        start = start_date + dt.timedelta(days=(day - 1))
-        end = start_date + dt.timedelta(day)
-
-        if end > end_date: continue  # exit if on the partial last day
-
-        __, ax = plt.subplots()
-
-        mean = data_df.mean(axis=1).ix[start:end]
-        sem = data_df.std(axis=1).ix[start:end] / math.sqrt(data_df.shape[1])
-
-        ax.plot_date(mean.index, mean, '-', color='k')
-        ax.set_title(' '.join([genotype, gender, data_type, 'Day', str(day),
-                               '(N=' + str(data_df.shape[1]) + ')']))
-
-        ax.xaxis.set_major_locator(mpld.HourLocator(interval=1))
-        ax.xaxis.set_major_formatter(mpld.DateFormatter('%H'))
-        ax.xaxis.grid(True, which='major')
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-        ax.set_ylim(ylim)
-        ax.set_xlim(start, end)
-
-        # plot SEM
-        for i in mean.index:
-            ax.errorbar(x=i, y=mean[i], yerr=sem[i], color='k')
-
-        # plot dark line for D phase
-        if day < protocol_dict['DD']:
-            ax.axhline(y=light_bar, xmin=0.5, xmax=1, linewidth=5, color='k')
-        else: ax.axhline(y=light_bar, xmin=0, xmax=1, linewidth=5, color='k')
-
-        pdf.savefig()
-        plt.close()
-
-    pdf.close()
-
-def data_vs_control(protocol_dict, DEnM_df, data_dict, genotype, data_type):
-    '''
-    Plot given sleep/activity data vs control sleep/activity daily.
-    '''
-
-    (dates, start_date, end_date) = \
-        analyze.calculate_dates(protocol_dict, DEnM_df)
-
-    resample_freq = str(protocol_dict['bin']) + 'Min'
-
-    control_genotype = protocol_dict['control_genotype']
-
-    data_df = data_dict[genotype].ix[start_date:end_date].resample(resample_freq, how='sum')
-    cont_df = data_dict[control_genotype].ix[start_date:end_date].resample(resample_freq, how='sum')
-
-    if data_type == 'activity':
-        ylabel = 'beam crossings per ' + str(protocol_dict['bin']) + ' minutes'
-        ylim = (0, 100)
-    if data_type == 'sleep':
-        ylabel = 'minutes sleep per ' + str(protocol_dict['bin']) + ' minutes'
-        ylim = (0, 45)
-    light_bar = 0.8 * ylim[1]
-
-    xlabel = 'time (h)'
-    if protocol_dict['gender'] == 'f': gender = ur'$\u2640$'
-    elif protocol_dict['gender'] == 'm': gender = ur'$\u2642$'
-    else: gender = ur''
-
-
-    savename = '_'.join([genotype,
-                         control_genotype,
-                         protocol_dict['gender'],
-                         data_type + '.pdf'])
-
-    pdf = PdfPages(savename)
-
-    for day in range(1, len(dates)):
-
-        start = start_date + dt.timedelta(days=(day - 1))
-        end = start_date + dt.timedelta(day)
-
-        if end > end_date: continue  # exit if on the partial last day
-
-        __, ax = plt.subplots()
-
-        data_mean = data_df.mean(axis=1).ix[start:end]
-        data_sem = data_df.std(axis=1).ix[start:end] / math.sqrt(data_df.shape[1])
-        cont_mean = cont_df.mean(axis=1).ix[start:end]
-        cont_sem = cont_df.std(axis=1).ix[start:end] / math.sqrt(data_df.shape[1])
-
-        ax.plot_date(data_mean.index,
-                     data_mean, '-', color='b',
-                     label=genotype)
-        # plot SEM
-        for i in data_mean.index:
-            ax.errorbar(x=i, y=data_mean[i], yerr=data_sem[i], color='b')
-
-        ax.plot_date(cont_mean.index,
-                     cont_mean,
-                     '--', color='r',
-                     label=control_genotype)
-        # plot SEM
-        for i in cont_mean.index:
-            ax.errorbar(x=i, y=cont_mean[i], yerr=cont_sem[i], color='r')
-
-        ax.legend(prop={'size':'x-small'})
-
-        ax.set_title(' '.join([genotype, gender, data_type, 'Day', str(day),
-                               '(N=' + str(data_df.shape[1]) + ')']))
-        ax.xaxis.set_major_locator(mpld.HourLocator(interval=1))
-        ax.xaxis.set_major_formatter(mpld.DateFormatter('%H'))
-        ax.xaxis.grid(True, which='major')
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-        ax.set_ylim(ylim)
-        ax.set_xlim(start, end)
-
-        # plot dark line for D phase
-        if day < protocol_dict['DD']:
-            ax.axhline(y=light_bar, xmin=0.5, xmax=1, linewidth=3, color='k')
-        else: ax.axhline(y=light_bar, xmin=0, xmax=1, linewidth=3, color='k')
-
-        pdf.savefig()
-        plt.close()
-
-    pdf.close()
-
-def multiple_data(protocol_dict, DEnM_df, data_dict, genotype_list, data_type):
-    '''
+def data(protocol_dict, DEnM_df, data_dict, genotype_list, data_type):
+    """
     Plot data for arbitrarily many lines on one graph.
-    '''
     (dates, start_date, end_date) = \
         analyze.calculate_dates(protocol_dict, DEnM_df)
+    """
 
     # create string used to control binning size
     resample_freq = str(protocol_dict['bin']) + 'Min'
@@ -259,27 +106,22 @@ def multiple_data(protocol_dict, DEnM_df, data_dict, genotype_list, data_type):
         mean_df[genotype] = df.mean(axis=1)
         sem_df[genotype] = df.std(axis=1) / math.sqrt(df.shape[1])
 
-    # plot decorations/parameters based on what type of plot
-    if data_type == 'activity':
-        ylabel = 'beam crossings per ' + str(protocol_dict['bin']) + ' minutes'
-        ylim = (0, 100)
-    if data_type == 'sleep':
-        ylabel = 'minutes sleep per ' + str(protocol_dict['bin']) + ' minutes'
-        ylim = (0, 45)
-    light_bar = 0.8 * ylim[1]
+    # plot decorations/parameters based on plot type
+    plot_decorations = {'activity': ('beam crossings per ' + str(protocol_dict['bin']) + ' minutes', (0, 100)),
+                        'sleep':    ('minutes sleep per ' + str(protocol_dict['bin']) + ' minutes', (0, 30))}
+    (ylabel, ylim) = plot_decorations[data_type]
+    light_bar = ylim[1]
 
     # other plot parameters
     xlabel = 'time (h)'
-    if protocol_dict['gender'] == 'f': gender = ur'$\u2640$'
-    elif protocol_dict['gender'] == 'm': gender = ur'$\u2642$'
-    else: gender = ur''
+    gender_labels = {'f': ur'$\u2640$', 'm': ur'$\u2642$'}
+    if protocol_dict['gender'] in gender_labels:
+        gender = gender_labels[protocol_dict['gender']]
+    else:
+        gender = ur''
 
-    color_cycle = ['r', 'g', 'b', 'c', 'm', 'k']
-
-    savename = '_'.join(['_'.join([x for x in genotype_list]),
-                         protocol_dict['gender'],
-                         data_type + '.pdf'])
-
+    # create name for pdf and open multi-page pdf object
+    savename = '_'.join([genotype_list[-1], protocol_dict['effector'], protocol_dict['gender'], data_type + '.pdf'])
     pdf = PdfPages(savename)
 
     for day in range(1, len(dates)):
@@ -291,23 +133,17 @@ def multiple_data(protocol_dict, DEnM_df, data_dict, genotype_list, data_type):
 
         __, ax = plt.subplots()
 
-
+        # plot each genotype as well as any controls on a graph
         for gen_index, genotype in enumerate(genotype_list):
             legend_label = ' '.join([genotype, 'N=' + str(data_dict[genotype].shape[1])])
-            ax.plot_date(mean_df[start:end].index,
-                         mean_df[start:end][genotype],
-                         '-',
-                         label=legend_label,
-                         color=color_cycle[gen_index % len(color_cycle)])
+            ax.plot_date(mean_df[start:end].index, mean_df[start:end][genotype], '-', label=legend_label,
+                         color=COLOR_CYCLE[gen_index % len(COLOR_CYCLE)])
             for i in mean_df[start:end].index:
                 ax.errorbar(x=i,
-                            y=mean_df[genotype][i],
-                            yerr=sem_df[genotype][i],
-                            color=color_cycle[gen_index % len(color_cycle)])
+                            y=mean_df[genotype][i], yerr=sem_df[genotype][i],
+                            color=COLOR_CYCLE[gen_index % len(COLOR_CYCLE)])
 
-        ax.legend(prop={'size':'x-small'})
-
-        ax.set_title(' '.join([genotype, gender, data_type, 'Day', str(day)]))
+        ax.set_title(' '.join([genotype_list[-1], 'x', protocol_dict['effector'], gender, data_type, 'Day', str(day)]))
         ax.xaxis.set_major_locator(mpld.HourLocator(interval=1))
         ax.xaxis.set_major_formatter(mpld.DateFormatter('%H'))
         ax.xaxis.grid(True, which='major')
@@ -316,16 +152,22 @@ def multiple_data(protocol_dict, DEnM_df, data_dict, genotype_list, data_type):
         ax.set_ylim(ylim)
         ax.set_xlim(start, end)
 
+        # Shink current axis's height by 10% on the bottom
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
+
+        # Put a legend below current axis
+        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), prop={'size': 'x-small'})
+
         # plot dark line for D phase
         if day < protocol_dict['DD']:
             ax.axhline(y=light_bar, xmin=0.5, xmax=1, linewidth=3, color='k')
         else: ax.axhline(y=light_bar, xmin=0, xmax=1, linewidth=3, color='k')
 
+        # save plot to pdf and close figure
         pdf.savefig()
         plt.close()
-
     pdf.close()
-
 
 
 if __name__ == '__main__':

@@ -1,17 +1,17 @@
-'''
+"""
 Created on Mar 6, 2014
 
 @author: William Rowell
-'''
+"""
 
 import datetime as dt
 import pandas as pd
 
 
 def aggregate_by_genotype(genotype_dict, config_dict, DEnM_df, DAM_dict):
-    '''
+    """
     Create a dict of genotypes with a datetime indexed df for each fly.
-    '''
+    """
 
     activity = dict()
     # only collect data for which the environmental monitor status is
@@ -47,11 +47,11 @@ def aggregate_by_genotype(genotype_dict, config_dict, DEnM_df, DAM_dict):
 
 
 def mark_dead_flies(protocol_dict, DEnM_df, activity_dict, genotype_dict):
-    '''
+    """
     Given the activity_dict of dfs and a day to check, looks for
     channels for which there is no activity on check_date and deletes
     dead fly columns from the df.
-    '''
+    """
 
     # determine the index to check from check_day
     (dates, __, __) = calculate_dates(protocol_dict, DEnM_df)
@@ -60,6 +60,7 @@ def mark_dead_flies(protocol_dict, DEnM_df, activity_dict, genotype_dict):
                                       dt.timedelta(minutes=1)
     check_end = check_start + dt.timedelta(1)
 
+    dead_flies = list()
     for genotype in activity_dict:
         for channel in activity_dict[genotype]:
             # take the set of all activity values for channel during check_date
@@ -69,33 +70,35 @@ def mark_dead_flies(protocol_dict, DEnM_df, activity_dict, genotype_dict):
             if not channel_activity:
                 # we should be alerted about dead flies
                 print '%s:%s - dead' % (genotype, channel)
+                dead_flies.append('_'.join([genotype, channel]))
                 # and the data for the dead fly should be deleted
                 del activity_dict[genotype][channel]
         # if all flies of this genotype is dead, warn us and delete the df
-        if not activity_dict[genotype]:
+        if activity_dict[genotype].shape[1] == 0:
             print 'All flies of genotype %s are dead.' % genotype
             del activity_dict[genotype]
             del genotype_dict[genotype]
+    return dead_flies
+
 
 def calculate_dates(protocol_dict, DEnM_df):
-    '''
+    """
     Returns a tuple of (dates, start_datetime, end_datetime) based on
     protocol_dict and datetime index of DEnM.
-    '''
+    """
 
     dates = sorted(list(set(DEnM_df.index.map(pd.Timestamp.date))))
     start_date = dt.datetime.combine(dates[1], protocol_dict['lights_on'])
     end_date = dt.datetime.combine(dates[-1], protocol_dict['lights_off'])
-
-    return (dates, start_date, end_date)
+    return dates, start_date, end_date
 
 
 def calculate_sleep(activity_dict):
-    '''
+    """
     Return a dict of sleep df.
     Sleep is defined as 5+ consecutive minutes without beam-crossings.
     The sleep df consists of int arrays where sleep = 1.
-    '''
+    """
 
     sleep_dict = dict()
 
@@ -120,7 +123,7 @@ def calculate_sleep(activity_dict):
                     (df[channel][i + 4] != 0)):
                     i += 5
                     continue
-                # if list of 5 doesn't start with zero, next
+                # if list of 5 doesn't start with zero, next 5
                 if df[channel][i] != 0:
                     i += 5
                     continue
@@ -138,7 +141,6 @@ def calculate_sleep(activity_dict):
                 sleep_dict[genotype][channel][i:i + j] = 1
                 # move to next beam crossing count
                 i = i + j + 1
-
     return sleep_dict
 
 
