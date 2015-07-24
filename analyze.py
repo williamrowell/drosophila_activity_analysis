@@ -11,6 +11,14 @@ import pandas as pd
 def aggregate_by_genotype(genotype_dict, config_dict, DEnM_df, DAM_dict):
     """
     Create a dict of genotypes with a datetime indexed df for each fly.
+
+    aggregate_by_genotype(genotype_dict, config_dict, DEnM_df, DAM_dict) -> activity_dict
+
+    input genotype_dict:  genotypes as keys and (monitor, first channel, last channel) tuples as values
+    input config_dict:    configuration values
+    input DEnM_df:        pd.dataframe of data from DEnM file
+    input DAM_dict:       pd.dataframe of data from all DAM files in folder
+    output activity_dict: genotypes as keys and pd.dataframe of activity data as value
     """
 
     activity = dict()
@@ -50,7 +58,15 @@ def mark_dead_flies(protocol_dict, DEnM_df, activity_dict, genotype_dict):
     """
     Given the activity_dict of dfs and a day to check, looks for
     channels for which there is no activity on check_date and deletes
-    dead fly columns from the df.
+    dead fly columns from the df.  Mutates activity_dict.
+
+    mark_dead_flies(protocol_dict, DEnM_df, activity_dict, genotype_dict) -> dead_flies_list
+
+    input protocol_dict:    information about the protocol used for this experiment
+    input DEnM_df:          pd.dataframe of data from DEnM file
+    input activity_dict:    genotypes as keys and pd.dataframe of activity data as value
+    input genotype_dict:    genotypes as keys and (monitor, first channel, last channel) tuples as values
+    output dead_flies_list: list of dead fly positions
     """
 
     # determine the index to check from check_day
@@ -85,6 +101,14 @@ def calculate_dates(protocol_dict, DEnM_df):
     """
     Returns a tuple of (dates, start_datetime, end_datetime) based on
     protocol_dict and datetime index of DEnM.
+
+    calculate_dates(protocol_dict, DEnM_df) -> (dates, start_datetime, end_datetime)
+
+    input protocol_dict:   information about the protocol used for this experiment
+    input DEnM_df:         pd.dataframe of data from DEnM file
+    output dates:          ordered list of dates available in dataset
+    output start_datetime: datetime of first lights_on event
+    output end_datetime:   datetime of last lights_off event
     """
 
     dates = sorted(list(set(DEnM_df.index.map(pd.Timestamp.date))))
@@ -95,9 +119,14 @@ def calculate_dates(protocol_dict, DEnM_df):
 
 def calculate_sleep(activity_dict):
     """
-    Return a dict of sleep df.
+    Return a dict of sleep dataframes.
     Sleep is defined as 5+ consecutive minutes without beam-crossings.
     The sleep df consists of int arrays where sleep = 1.
+
+    calculate_sleep(activity_dict) -> sleep_dict
+
+    input activity_dict: genotypes as keys and pd.dataframe of activity data as value
+    output sleep_dict:   genotypes as keys and pd.dataframe of sleep data as value
     """
 
     sleep_dict = dict()
@@ -115,7 +144,6 @@ def calculate_sleep(activity_dict):
             sleep_dict[genotype][channel] = [0] * channel_length
 
             # look for streaks of 5+ zeros by iterating through list
-            # TODO: CHECK LOGIC ON THIS AT END OF EXPERIMENT
             i = 0
             while i < channel_length:
                 # if list of 5 doesn't end with zero, next

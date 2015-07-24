@@ -1,0 +1,4 @@
+
+# added by Anaconda 2.0.0 installer
+export PATH="~/anaconda/bin:$PATH"
+alias process_dam='~/Desktop/drosophila_activity_analysis/process_experiment.py'

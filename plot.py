@@ -6,7 +6,6 @@ Created on Mar 6, 2014
 
 from matplotlib.backends.backend_pdf import PdfPages
 import math
-import analyze
 import datetime as dt
 import matplotlib.dates as mpld
 import matplotlib.pyplot as plt
@@ -20,8 +19,11 @@ COLOR_CYCLE = ['k', 'r', 'b', 'g', 'm', 'c']
 def metadata(protocol_dict, DEnM_df):
     """
     Plot Lavg, Tavg, and Havg daily.
-    (dates, start_date, end_date) = \
-        analyze.calculate_dates(protocol_dict, DEnM_df)
+
+    metadata(protocol_dict, DEnM_df) -> None
+
+    input protocol_dict: information about the protocol used for this experiment
+    input DEnM_df:       pd.dataframe of data from DEnM file
     """
 
     # create name for pdf and open multi-page pdf object
@@ -87,8 +89,14 @@ def metadata(protocol_dict, DEnM_df):
 def data(protocol_dict, DEnM_df, data_dict, genotype_list, data_type):
     """
     Plot data for arbitrarily many lines on one graph.
-    (dates, start_date, end_date) = \
-        analyze.calculate_dates(protocol_dict, DEnM_df)
+
+    data(protocol_dict, DEnM_df, data_dict, genotype_list, data_type) -> None
+
+    input protocol_dict: information about the protocol used for this experiment
+    input DEnM_df:       pd.dataframe of data from DEnM file
+    input data_dict:     activity_dict or sleep_dict
+    input genotype_list: list of genotypes to plot
+    input data_type:     'activity' or 'sleep'
     """
 
     # create string used to control binning size

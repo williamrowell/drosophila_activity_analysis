@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-# import modules used here
 import sys
 import os
 import shutil
@@ -57,7 +56,7 @@ def main():
         controls.  Other plot types are included in the plot.y module, but not
         implemented in this script.
 
-        The activity and sleep dictionaries are written as csv files for later use.
+        The activity and sleep dictionaries are written as .xls files for later use.
         """
 
     # read the configuration file

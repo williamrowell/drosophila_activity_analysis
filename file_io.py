@@ -13,13 +13,18 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 
-import analyze
-
 
 def read_config(configfile):
     """
-    Load program configuration information from a config-style file
-    using ConfigParser.  Filename as input.
+    Load program configuration information from a config-style file using
+    ConfigParser.  Filename as input.
+    The configuration file is where system wide configuration variables are
+    stored, such as environmental monitor list or maximum monitor index.
+
+    read_config(configfile) -> config_dict
+
+    input configfile:   path and name for configuration file, ex. './config.ini'
+    output config_dict: settings stored as key->value pairs
     """
 
     # does the key exist?
@@ -55,6 +60,13 @@ def read_key(keyfile):
     """
     Load protocol and genotype information from a config-style file
     using ConfigParser.  Filename as input.
+    The key file is where experiment configuration is stored, such as which DEnm
+    was used, the lights_on and lights_off times, and the genotypes.
+
+    read_key(keyfile) -> protocol_dict
+
+    input keyfile:        path and name for protocol file, ex. './experiment1.ini'
+    output protocol_dict: protocol settings stored as key->value pairs
     """
 
     # does the key exist?
@@ -121,6 +133,12 @@ def read_DEnM_data(monitor_number, ENV_MONITORS):
     Read the Trikinetics Drosophila Environmental Monitor text file for
     'monitor_number' and return a datetime indexed df with status, Lavg,
     Tavg, Havg, and light boolean.
+
+    read_DEnM_data(monitor_number, ENV_MONITORS) -> DEnM_df
+
+    input monitor_number: index of the DEnM
+    input ENV_MONITORS:   list of all allowed DEnMs
+    output DEnM_df:       pd.dataframe of DEnM data
     """
 
     # test if this is an environmental monitor
@@ -168,6 +186,12 @@ def read_DAM_data(monitor_number, MAX_MONITOR):
     Read the Trikinetics Drosophila Activity Monitor text file for
     'monitor_number' and return a datetime indexed df with status,
     Lstatus, and 32 activity channels (named M#C#).
+
+    read_DAM_data(monitor_number, MAX_MONITOR) -> DAM_df
+
+    input monitor_number: index of the DAM
+    input MAX_MONITOR:    highest allowable monitor index
+    output DAM_df:        pd.dataframe of DAM data
     """
 
     # test if this is an activity monitor
@@ -201,12 +225,41 @@ def read_DAM_data(monitor_number, MAX_MONITOR):
     return df
 
 
+def bad_status(df, first, last):
+    '''
+    Check the status column of df between indices first and last for any
+    values that aren't 24 or 1.  In DAM and DEnM files, status values of
+    24 indicate initialization and status values of 1 indicate "OK".
+    Anything else indicates a problem of some sort.
+
+    bad_status(df, first, last) -> status_boolean
+
+    input df:              DAM_df or DEnM_df to check
+    input first:           first index to check
+    input last:            last index to check
+    output status_boolean: True = bad, False = good
+
+    '''
+    first_time = dt.datetime.strptime(first, '%Y%m%dT%H%M%S')
+    last_time = dt.datetime.strptime(last, '%Y%m%dT%H%M%S')
+
+    status = set(df.ix[first_time:last_time].status.values)
+    status.discard(1)
+    status.discard(24)
+    return not status
+
+
 def write_data(protocol_dict, DEnM_df, data_dict, outname):
     """
     Write activity or sleep data to disk.
-    '''
-    (__, start_date, end_date) = \
-        analyze.calculate_dates(protocol_dict, DEnM_df)
+
+    write_data(protocol_dict, DEnM_df, data_dict, outname) -> None
+
+    input protocol_dict: protocol settings stored as key->value pairs
+    input DEnM_df:       pd.dataframe of DEnM data
+    input data_dict:     activity_dict or sleep_dict
+    input outname:       name to use for output file
+    """
 
     # create string used to control binning size
     resample_freq = str(protocol_dict['bin']) + 'Min'
