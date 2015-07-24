@@ -54,3 +54,6 @@ usage: python process_experiment.py [config_file] key_file
     1. sleep bout length
 - Dynamically determine y limits for activity plots
 - Panel plots instead of multi-page plots
+
+# NOTES
+- In OS X, it may be useful to enable "New Terminal Here" so that you can open a terminal easily from Finder.  Instructions can be found here:  http://stackoverflow.com/questions/420456/open-terminal-here-in-mac-os-finder
