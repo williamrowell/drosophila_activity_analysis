@@ -148,15 +148,20 @@ def data(protocol_dict, DEnM_df, data_dict, genotype_list, data_type):
 
         # plot each genotype as well as any controls on a graph
         for gen_index, genotype in enumerate(genotype_list):
+            if len(genotype_list) > 1:
+                color = COLOR_CYCLE[gen_index % len(COLOR_CYCLE)]
+            else:
+                color = 'r'
             legend_label = ' '.join([genotype, 'N=' + str(data_dict[genotype].shape[1])])
             ax.plot_date(mean_df[start:end].index, mean_df[start:end][genotype], '-', label=legend_label,
-                         color=COLOR_CYCLE[gen_index % len(COLOR_CYCLE)])
+                         color=color)
             for i in mean_df[start:end].index:
                 ax.errorbar(x=i,
                             y=mean_df[genotype][i], yerr=sem_df[genotype][i],
-                            color=COLOR_CYCLE[gen_index % len(COLOR_CYCLE)])
+                            color=color)
 
-        ax.set_title(' '.join([genotype_list[-1], 'x', protocol_dict['effector'], gender, data_type, 'Day', str(day)]))
+        mean_temp = round(DEnM_df['Tavg'].ix[start:end].mean(), 1)
+        ax.set_title(' '.join([genotype_list[-1], 'x', protocol_dict['effector'], gender, data_type, 'Day', str(day), '(' + str(mean_temp) + '$^\circ$C' + ')']))
         ax.xaxis.set_major_locator(mpld.HourLocator(interval=1))
         ax.xaxis.set_major_formatter(mpld.DateFormatter('%H'))
         ax.xaxis.grid(True, which='major')
@@ -170,7 +175,8 @@ def data(protocol_dict, DEnM_df, data_dict, genotype_list, data_type):
         ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
 
         # Put a legend below current axis
-        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), prop={'size': 'x-small'})
+        if len(genotype_list) > 1:
+            ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), prop={'size': 'x-small'})
 
         # plot dark line for D phase
         if day < protocol_dict['DD']:
