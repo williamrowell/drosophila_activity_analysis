@@ -12,6 +12,7 @@ import re
 import datetime as dt
 import numpy as np
 import pandas as pd
+import analyze
 
 
 def read_config(configfile):
@@ -260,6 +261,8 @@ def write_data(protocol_dict, DEnM_df, data_dict, outname):
     input data_dict:     activity_dict or sleep_dict
     input outname:       name to use for output file
     """
+
+    (dates, start_date, end_date) = analyze.calculate_dates(protocol_dict, DEnM_df)
 
     # create string used to control binning size
     resample_freq = str(protocol_dict['bin']) + 'Min'

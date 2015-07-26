@@ -11,6 +11,7 @@ import matplotlib.dates as mpld
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import analyze
 
 
 COLOR_CYCLE = ['k', 'r', 'b', 'g', 'm', 'c']
@@ -25,6 +26,8 @@ def metadata(protocol_dict, DEnM_df):
     input protocol_dict: information about the protocol used for this experiment
     input DEnM_df:       pd.dataframe of data from DEnM file
     """
+
+    (dates, start_date, end_date) = analyze.calculate_dates(protocol_dict, DEnM_df)
 
     # create name for pdf and open multi-page pdf object
     savename = '_'.join(['DEnM', str(protocol_dict['DEnM']) + '.pdf'])
@@ -98,6 +101,8 @@ def data(protocol_dict, DEnM_df, data_dict, genotype_list, data_type):
     input genotype_list: list of genotypes to plot
     input data_type:     'activity' or 'sleep'
     """
+
+    (dates, start_date, end_date) = analyze.calculate_dates(protocol_dict, DEnM_df)
 
     # create string used to control binning size
     resample_freq = str(protocol_dict['bin']) + 'Min'
