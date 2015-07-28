@@ -62,6 +62,7 @@ usage: python process_experiment.py [config_file] key_file
 - matplotlib
 
 # NOTES
+- On a PC, install Git with Git Bash from [here](https://msysgit.github.io/).  Not only will you use it to download the scripts, but you can use "Git Bash" from the context menu to open a terminal in your data folder to process the experiment.
 - If you're not particularly technically saavy, I recommend grabbing Anaconda python from [here](http://continuum.io/downloads).
 - It helps to make an alias in your .bashrc or .bash_profile, something like:  alias process_dam='/path/to/drosophila_activity_analysis/process_experiment.py'
 - In OS X, it may be useful to enable "New Terminal Here" so that you can open a terminal easily from Finder.  Instructions can be found here:  http://stackoverflow.com/questions/420456/open-terminal-here-in-mac-os-finder\
