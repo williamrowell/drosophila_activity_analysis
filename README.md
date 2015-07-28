@@ -55,11 +55,13 @@ usage: python process_experiment.py [config_file] key_file
 - Dynamically determine y limits for activity plots
 - Panel plots instead of multi-page plots
 
-# NOTES
-- In OS X, it may be useful to enable "New Terminal Here" so that you can open a terminal easily from Finder.  Instructions can be found here:  http://stackoverflow.com/questions/420456/open-terminal-here-in-mac-os-finder
-
 # REQUIREMENTS
 - python 2.7
 - pandas
 - numpy
 - matplotlib
+
+# NOTES
+- If you're not particularly technically saavy, I recommend grabbing Anaconda python from [here](http://continuum.io/downloads).
+- It helps to make an alias in your .bashrc or .bash_profile, something like:  alias process_dam='/path/to/drosophila_activity_analysis/process_experiment.py'
+- In OS X, it may be useful to enable "New Terminal Here" so that you can open a terminal easily from Finder.  Instructions can be found here:  http://stackoverflow.com/questions/420456/open-terminal-here-in-mac-os-finder\
