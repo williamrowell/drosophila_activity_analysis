@@ -101,8 +101,8 @@ def main():
     for genotype in genotype_dict.keys():
         if genotype not in protocol_dict['control_genotype']:
             genotype_list = list()
-            if protocol_dict['control_genotype'] in activity_dict.keys():
-                genotype_list = list(protocol_dict['control_genotype'])
+            if set(protocol_dict['control_genotype']) & set(activity_dict.keys()):
+                genotype_list = protocol_dict['control_genotype']
             genotype_list.append(genotype)
             plot.data(protocol_dict, DEnM_df, activity_dict, genotype_list, 'activity')
             plot.data(protocol_dict, DEnM_df, sleep_dict, genotype_list, 'sleep')
