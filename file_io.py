@@ -15,6 +15,9 @@ import pandas as pd
 import analyze
 
 
+BAD_STATUS = {50, 51, 52, 53, 55}
+
+
 def read_config(configfile):
     """
     Load program configuration information from a config-style file using
@@ -162,6 +165,12 @@ def read_DEnM_data(monitor_number, ENV_MONITORS):
     # read monitor file
     df = pd.read_csv(datafile, sep='\t', header=None, names=hr, usecols=columns)
 
+    # if any rows have a bad status, replace all data from that row with NaN
+    if bad_status(df, 0, df.index[-1]):
+        status_warning = 'DEnM contains timepoints with status errors. This data should not be trusted.  Use at your own risk.'
+        print status_warning
+        df[df.status.isin(BAD_STATUS)].replace(0,np.nan)
+
     # create datetime vector from 'date' and 'time' vectors
     df.index = [dt.datetime.strptime(df.date[i] + ' ' + df.time[i],
                                      '%d %b %y %H:%M:%S')
@@ -226,28 +235,21 @@ def read_DAM_data(monitor_number, MAX_MONITOR):
     return df
 
 
-def bad_status(df, first, last):
+def bad_status(df):
     '''
-    Check the status column of df between indices first and last for any
-    values that aren't 24 or 1.  In DAM and DEnM files, status values of
-    24 indicate initialization and status values of 1 indicate "OK".
-    Anything else indicates a problem of some sort.
+    Check the status column of df for any values that are in the BAD_STATUS set.
+    In DAM and DEnM files, status values of 24 indicate initialization and
+    status values of 1 indicate "OK".  Anything else indicates a problem of some
+    sort.
 
-    bad_status(df, first, last) -> status_boolean
+    bad_status(df) -> status_boolean
 
     input df:              DAM_df or DEnM_df to check
-    input first:           first index to check
-    input last:            last index to check
     output status_boolean: True = bad, False = good
 
     '''
-    first_time = dt.datetime.strptime(first, '%Y%m%dT%H%M%S')
-    last_time = dt.datetime.strptime(last, '%Y%m%dT%H%M%S')
-
-    status = set(df.ix[first_time:last_time].status.values)
-    status.discard(1)
-    status.discard(24)
-    return not status
+    status = set(df.status.values)
+    return bool(status & BAD_STATUS)
 
 
 def write_data(protocol_dict, DEnM_df, data_dict, outname):
