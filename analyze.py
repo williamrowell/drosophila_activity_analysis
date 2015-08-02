@@ -81,9 +81,9 @@ def mark_dead_flies(protocol_dict, DEnM_df, activity_dict, genotype_dict):
         dead_fly_warning = '''
         WARNING:
         You are trying to check for dead flies on a day for which you do not
-        have any data.  Dead fly detection has been disabled.  If you want to
-        re-enable dead fly detection, please set check_day to an integer
-        between 0 and the length of the experiment.
+        have any data.  Dead fly detection has been disabled, which could produce
+        inaccurate results.  If you want to re-enable dead fly detection, please
+        set check_day to an integer between 0 and the length of the experiment.
         '''
         print dead_fly_warning
         return []
