@@ -15,7 +15,7 @@ import pandas as pd
 import analyze
 
 
-BAD_STATUS = {50, 51, 52, 53, 55}
+BAD_STATUS = {50, 51, 52, 53, 55}  # status values that indicate bad data
 
 
 def read_config(configfile):
