@@ -98,11 +98,12 @@ def main():
     plot.metadata(protocol_dict, DEnM_df)
 
     # plot the activity and sleep of each genotype individually, with all controls
+    controls = list()
+    if set(protocol_dict['control_genotype']) & set(genotype_dict.keys()):
+        controls = protocol_dict['control_genotype']
     for genotype in genotype_dict.keys():
         if genotype not in protocol_dict['control_genotype']:
-            genotype_list = list()
-            if set(protocol_dict['control_genotype']) & set(activity_dict.keys()):
-                genotype_list = protocol_dict['control_genotype']
+            genotype_list = list(controls)
             genotype_list.append(genotype)
             plot.data(protocol_dict, DEnM_df, activity_dict, genotype_list, 'activity')
             plot.data(protocol_dict, DEnM_df, sleep_dict, genotype_list, 'sleep')

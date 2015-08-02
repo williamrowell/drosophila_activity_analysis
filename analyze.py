@@ -24,7 +24,9 @@ def aggregate_by_genotype(genotype_dict, config_dict, DEnM_df, DAM_dict):
     activity = dict()
     # only collect data for which the environmental monitor status is
     # good, i.e. status isn't 51 (unreachable)
-    time_series = DEnM_df.index[DEnM_df['status'] != 51]
+    # disabling for present
+    # time_series = DEnM_df.index[DEnM_df['status'] != 51]
+    time_series = DEnM_df.index
 
     for genotype in genotype_dict:
         for (monitor, first, last) in genotype_dict[genotype]:
@@ -71,12 +73,23 @@ def mark_dead_flies(protocol_dict, DEnM_df, activity_dict, genotype_dict):
 
     # determine the index to check from check_day
     (dates, __, __) = calculate_dates(protocol_dict, DEnM_df)
-    check_start = dt.datetime.combine(dates[protocol_dict['check_day']],
-                                      protocol_dict['lights_on']) + \
-                                      dt.timedelta(minutes=1)
+    if len(dates) >= protocol_dict['check_day'] >= 0:
+        check_start = dt.datetime.combine(dates[protocol_dict['check_day']],
+                                          protocol_dict['lights_on']) + \
+                                          dt.timedelta(minutes=1)
+    else:
+        dead_fly_warning = '''
+        WARNING:
+        You are trying to check for dead flies on a day for which you do not
+        have any data.  Dead fly detection has been disabled.  If you want to
+        re-enable dead fly detection, please set check_day to an integer
+        between 0 and the length of the experiment.
+        '''
+        print dead_fly_warning
+        return []
     check_end = check_start + dt.timedelta(1)
 
-    dead_flies = list()
+    dead_flies = []
     for genotype in activity_dict:
         for channel in activity_dict[genotype]:
             # take the set of all activity values for channel during check_date
@@ -114,6 +127,8 @@ def calculate_dates(protocol_dict, DEnM_df):
     dates = sorted(list(set(DEnM_df.index.map(pd.Timestamp.date))))
     start_date = dt.datetime.combine(dates[1], protocol_dict['lights_on'])
     end_date = dt.datetime.combine(dates[-1], protocol_dict['lights_off'])
+    if end_date > DEnM_df.index[-1]:
+        end_date = dt.datetime.combine(dates[-2], protocol_dict['lights_off'])
     return dates, start_date, end_date
 
 

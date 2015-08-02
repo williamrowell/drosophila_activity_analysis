@@ -166,8 +166,13 @@ def read_DEnM_data(monitor_number, ENV_MONITORS):
     df = pd.read_csv(datafile, sep='\t', header=None, names=hr, usecols=columns)
 
     # if any rows have a bad status, replace all data from that row with NaN
-    if bad_status(df, 0, df.index[-1]):
-        status_warning = 'DEnM contains timepoints with status errors. This data should not be trusted.  Use at your own risk.'
+    if bad_status(df):
+        status_warning = '''
+        WARNING:
+        DEnM contains timepoints with status errors. This means that you do not
+        have valid light, temperature, and humidity measurements for these
+        timepoints.  These data should not be trusted.  Use at your own risk.
+        '''
         print status_warning
         df[df.status.isin(BAD_STATUS)].replace(0,np.nan)
 
