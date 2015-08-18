@@ -3,9 +3,14 @@ drosophila_activity_analysis
 
 Authors: William Rowell <rowellw@janelia.hhmi.org>
 
-This project is a collection of functions to read drosophila activity data collected by
-Trikinetics *drosophila* activity and *drosophila* environmental monitors (DAMs and DEnMs),
-process the activity and sleep data, and plot this data.
+The code processes and analyzes the DAM (*Drosophila* Activity Monitor) data
+and delivers sleep/activity plots as well as data in Excel-readable
+format.  The code contains a collection of functions for reading
+Trikinetics DENM (*Drosophila* Environmental Monitor) and DAM (*Drosophila
+Activity* Monitor) data formats, aggregating by genotype, identifying dead
+flies, identifying sleep bouts, plotting, and saving the data.
+System-wide parameters and experimental parameters are encoded in two
+separate config-style ini files.
 
 # FILE TYPES
 
