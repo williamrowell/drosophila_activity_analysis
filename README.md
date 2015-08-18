@@ -1,6 +1,8 @@
 drosophila_activity_analysis
 ============================
 
+Authors: Billy Rowell <rowellw@janelia.hhmi.org>
+
 This project is a collection of functions to read drosophila activity data collected by
 Trikinetics *drosophila* activity and *drosophila* environmental monitors (DAMs and DEnMs),
 process the activity and sleep data, and plot this data.
