@@ -32,8 +32,8 @@ usage: python process_experiment.py [config_file] key_file
 
         When called, these files are parsed and the raw experimental data is
         processed/aggregated into two dictionaries:
-        activity_dict - a table containing the raw beam crossing events, per minute
-        sleep_dict    - a table where minutes of sleep are marked with a '1'
+        activity_dict - tables containing the raw beam crossing events, per minute
+        sleep_dict    - tables where minutes of sleep are marked with a '1'
                     (sleep is defined as 5+ consecutive minutes of 0 activity)
 
         After the construction of these dictionaries, plots are produced for the
